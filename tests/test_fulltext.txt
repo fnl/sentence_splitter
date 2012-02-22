@@ -1,0 +1,29 @@
+PLoS Biol.
+
+PER-TIM interactions with the photoreceptor cryptochrome mediate circadian temperature responses in Drosophila.
+
+R Kaushik, P Nawathean, A Busza, A Murad, P Emery, M Rosbash
+
+Drosophila cryptochrome (CRY) is a key circadian photoreceptor that interacts with the period and timeless proteins (PER and TIM) in a light-dependent manner. We show here that a heat pulse also mediates this interaction, and heat-induced phase shifts are severely reduced in the cryptochrome loss-of-function mutant cry(b). The period mutant per(L) manifests a comparable CRY dependence and dramatically enhanced temperature sensitivity of biochemical interactions and behavioral phase shifting. Remarkably, CRY is also critical for most of the abnormal temperature compensation of per(L) flies, because a per(L); cry(b) strain manifests nearly normal temperature compensation. Finally, light and temperature act together to affect rhythms in wild-type flies. The results indicate a role for CRY in circadian temperature as well as light regulation and suggest that these two features of the external 24-h cycle normally act together to dictate circadian phase.
+
+-Animals
+-Behavior, Animal
+-Biological Clocks (-genetics; -physiology)
+-Circadian Rhythm (-genetics; +physiology)
+-Cryptochromes
+-Drosophila (-genetics; +metabolism)
+-Drosophila Proteins (+metabolism)
+-Flavoproteins (-genetics; +metabolism)
++Hot Temperature
+-Light
+-Models, Biological
+-Mutation
+-Nuclear Proteins (-genetics; +metabolism)
+-Period Circadian Proteins
+-Time Factors
+
+pii:07-PLBI-RA-0115R2
+doi:10.1371/journal.pbio.0050146
+pubmed:17535111
+pmc:PMC1877818
+

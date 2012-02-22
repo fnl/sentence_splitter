@@ -1,0 +1,138 @@
+#!/usr/bin/env python
+
+# Created by Florian Leitner on 2007-02-26.
+# Copyright (c) 2007 Florian Leitner.
+# All rights reserved.
+# 
+# GNU GPL LICENSE
+#
+# This module is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; latest version thereof,
+# available at: <http://www.gnu.org/licenses/gpl.txt>.
+#
+# This module is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this module; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
+
+"""split text into sentences (from input file(s) or STDIN)"""
+
+import logging
+import os
+import sys
+
+from optparse import OptionParser
+
+import fnl.nlp.tabletext as text
+import fnl.nlp.sentencesplitter as splitter
+
+__version__ = "3"
+__author__ = "Florian Leitner"
+
+LOOKAHEAD_LIMIT=500
+
+def __getopts():
+    usage = "usage: %prog [opts] [infile...]"
+    epilog = "input: [text_id [\\t title] \\t] text [\\t more...] [\\n];\n" \
+        "fulltext (-f) FILE INPUT (not STDIN!) is NOT split by newlines;\n" \
+        "(C) 2007-2012 Florian Leitner; All rights reserved."
+    parser = OptionParser(
+        add_help_option=True, description=__doc__.strip(), epilog=epilog,
+        prog=os.path.basename(sys.argv[0]), usage=usage, version=__version__
+    )
+    parser.set_defaults(logging=logging.WARNING)
+    parser.add_option("-f", "--fulltext", action="store_true", default=False,
+                    help="input is unformatted (only text)")
+    parser.add_option("-m", "--more", action="store_const",
+                    default=0, const=2,
+                    help="more data after last column")
+    parser.add_option("-t", "--title", action="store_const",
+                    default=0, const=1,
+                    help="input has a title column")
+    parser.add_option("-l", "--limit", type="int", metavar="INT", 
+                    default=LOOKAHEAD_LIMIT,
+                    help="max. # chars for bracket closing lookahead")
+    parser.add_option("-o", "--out", metavar="STR",
+                    help="output to file (name) [default: STDOUT]")
+    parser.add_option("-s", "--sep", metavar="STR", default="\t",
+                      help="field separator [default: tab]")
+    parser.add_option(
+        "--error",
+        action="store_const", const=logging.ERROR, dest="logging",
+        help="error output only [default: warn]"
+    )
+    parser.add_option(
+        "--info",
+        action="store_const", const=logging.INFO, dest="logging",
+        help="add info output [default: warn]"
+    )
+    parser.add_option(
+        "--debug",
+        action="store_const", const=logging.DEBUG, dest="logging",
+        help="add info and debug output [default: warn]"
+    )
+
+    opts, args = parser.parse_args()
+    logging.basicConfig(
+        level=opts.logging,
+        format="%(levelname)s %(name)s: %(message)s"
+    )
+    return parser, args, opts
+
+def splitDocs(doc_it, ostream, limit):
+    for doc in doc_it:
+        more = "" if doc.more is None else "\t%s" % '\t'.join(doc.more)
+        
+        if doc.title is not None:
+            for i, s in enumerate(splitter.split(doc.title, limit=limit)):
+                print >> ostream, "%s\t%i\t%s%s" % (
+                    doc.uid,  (i * -1) - 1, s, more
+                )
+        
+        for i, s in enumerate(splitter.split(doc.text, limit=limit)):
+            print >> ostream, "%s\t%i\t%s%s" % (
+                doc.uid,  i, s, more
+            )
+
+def splitText(text, ostream, limit):
+    for sentence in splitter.split(text, limit=limit):
+        print >> ostream, sentence
+
+if __name__ == '__main__':
+    parser, args, opts = __getopts()
+    
+    # GET THE DESIRED INPUT READER
+    Reader = (
+        text.TextReader, text.ArticleReader,
+        text.MoreTextReader, text.MoreArticleReader
+    )[opts.more + opts.title]
+    
+    # OPEN THE DESIRED OUTPUT STREAM
+    ostream = sys.stdout if opts.out is None else open(opts.out, "wT")
+    
+    file_names = args if len(args) else (None,)
+    
+    for fname in file_names:
+        # SPLIT THE TEXT COMING THROUGH THE INPUT STREAM
+        if opts.fulltext or fname is None:
+            if fname is not None:
+                # Fulltext Infile: split the entire file at once
+                with open(fname, 'rT') as infile:
+                    splitText(infile.read(), ostream, opts.limit)
+            else:
+                # STDIN: treat each line as a comple text unit
+                for line in sys.stdin:
+                    splitText(line, ostream, opts.limit)
+        else:
+            # Split the tabular content and output tabular data
+            with open(fname, 'rT') as infile:
+                splitDocs(Reader(infile, sep=opts.sep), ostream, opts.limit)
+        
+    # CLOSE THE OUTPUT STREAM
+    if opts.out is not None:
+        ostream.close()

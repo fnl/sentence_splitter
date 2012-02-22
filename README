@@ -1,0 +1,56 @@
+A simple RegEx based sentence splitter
+======================================
+
+(c) 2007-2012 Florian Leitner. All rights reserved.
+
+License: GNU GPL, latest version.
+
+Dependencies: Python 2.6 or 2.7
+
+Latest Version: 3
+
+Installation
+------------
+
+To install it, use the usual Python way:
+
+  $ python setup.py install
+
+This will install an executable in your Python's script path (OS-dependent) with the name "split-sentences". To learn all options, call the script with option -h/--help.
+
+  $ split-sentences -h
+
+Usage
+-----
+
+By default and if input files are given, it expects TSV files with the structure "SOME_ID <tab> TEXT". An additional title column between the text and the ID can be indicated with the option -t/--title. In this case, the title column is split, too, but negative sentence IDs are used to identify sentences from the title column (see the output format below). Any number of additional columns after the text can be indicated with the option -m/--more (if not indicated, and more columns are present, the script aborts with an error). The output is in the form "SOME_ID <tab> SENTENCE_ID <tab> SENTENCE" plus, if option -m was used, any content found that was found after the text column. A sentence ID is simply a sequential integer starting from zero with the first sentence for a given "SOME_ID". The column separator (a tab) can be changed with the option -s/--sep.
+
+Alternatively, the script can work on the STDIN stream or on unformatted full-text files. In the earlier case (STDIN), each complete text (e.g., paragraph) to split is assumed to have been streamed to the script as a complete line. I.e., using STDIN does not try to split across newlines and does not expect tabulated input. This means, the easiest way to see the script "in action" is to execute it without any options at all, then type two or three dummy sentences, hit return, then CTRL-D, and see the output of those dummy sentences:
+
+  $ python split-sentences
+  Some test sentence. Another second sentence.<ENTER><CTRL-D>
+  Some test sentence.
+  Another second sentence.
+
+If fulltext files are to be split, use the option -f/--fulltext. In this case, the entire file content (ie., including sentences across newlines, contrary to STDIN splitting) is assumed to be the relevant content. For both fulltext and STDIN input, each output line simply contains a sentence. So if you wish to split multiple full-text files into multiple output files, you could use - f.e. - the bash for loop:
+
+  for f in $(ls -1 *.txt); do split-sentences -f $f > $f.out; done
+
+Input files are given on the command line; you can specify as many as you wish (ie, as your OS can glob). The output usually is printed to STDOUT, although you can specify a specific output file (name) with the option -o/--out (nb: overwrites the file if it existed). Last there is an option -l/--limit to limit the lookahead for closing brackets. I suggest you leave this to the default it is set to; after several trials I have found this is the highest possible setting, as if you go any further/deeper, it can lead to recursion depth issues.
+
+If you wish to integrate the splitter into your own Python scripts, you can use the splitter "API":
+
+  from fnl.nlp import sentencesplitter as splitter
+  splitter.split(my_string_i_want_to_split, limit=optarg_limit_int)
+
+Finally, here's a simple interactive session with the splitter on the shell to check the "API":
+
+  $ python
+  Python 2.6.1 (r261:67515, Jun 24 2010, 21:47:49) 
+  [GCC 4.2.1 (Apple Inc. build 5646)] on darwin
+  Type "help", "copyright", "credits" or "license" for more information.
+  >>> from fnl.nlp import sentencesplitter as splitter
+  >>> splitter.split("Hello, World! Hello, other sentence.")
+  ['Hello, World!', 'Hello, other sentence.']
+
+Don't expect any big wonders, this is a relatively trivial regex splitter and thus has its limits.
