@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='sentence_splitter',
-    version='3',
+    version='4',
     description='A command line tool to split input text into sentences.',
     license='GNU GPL, latest version',
     author='Florian Leitner',

@@ -99,7 +99,7 @@ def __brackets(text, start, end, limit):
         if next != -1:
             __logger.debug("__brackets: start-next='%s'" % text[start:next])
             try:
-                tmp = matchBracket(text, next)
+                tmp = matchBracket(text, next, limit)
             except RuntimeError, msg:
                 part = text
                 try:

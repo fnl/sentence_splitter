@@ -36,20 +36,25 @@ __author__ = "Florian Leitner"
 def __matchHelper(openers, closers):
     """Return the matching close position for the first open position."""
     o = openers.pop(0)
+    
     if len(openers) == 0:
         return closers.pop(0)
+    
     c = closers[0]
+    
     if c < openers[0]:
         c = closers.pop(0)
         __matchHelper(openers, closers)
     else:
         __matchHelper(openers, closers)
         c = closers.pop(0)
+    
     if o >= c:
         raise IndexError("open >= close: %i >= %i" % (o, c))
+    
     return c
 
-def matchBracket(text, offset):
+def matchBracket(text, offset, limit=None):
     """Find the matching bracket to the one found at offset in text.
     
     The bracket at offset must be one of the six in '({[]})' - otherwise a
@@ -61,37 +66,54 @@ def matchBracket(text, offset):
     brackets = (('(', ')'), ('[', ']'), ('{', '}'))
     opening, closing = None, None
     reverse = False
+    logger = logging.getLogger("fnl.nlp.utils.matchBracket")
+    
     for (o, c) in brackets:
         if text[offset] == o:
             opening, closing = o, c
+            break
         elif text[offset] == c:
             opening, closing = o, c
             reverse = True
+            break
+    
     if opening is None:
         raise RuntimeError("character at %i not a bracket: '%s'" %
                            (offset, text[offset]))
     if reverse:
-        start = 0
         end = offset + 1
+        start = 0 if limit is None else offset - limit
     else:
         start = offset
-        end = None
+        end = None if limit is None else offset + limit
+    
+    logger.debug(
+        "%smatching opening=%s and closing=%s from %i to %s",
+        "reverse " if reverse else "", opening, closing, start, str(end)
+    )
     openers = offsets(text, opening, start=start, end=end)
     closers = offsets(text, closing, start=start, end=end)
+    
     if len(openers) == 0 or len(closers) == 0:
         return -1
+    
     if reverse:
         openers.reverse()
         closers.reverse()
         tmp = [i * -1 for i in openers]
         openers = [i * -1 for i in closers]
         closers = tmp
+    
+    logger.debug("%i openers and %i closers", len(openers), len(closers))
+    
     try:
         matching_bracket = __matchHelper(openers, closers)
     except IndexError:
         return -1
+    
     if reverse:
         return matching_bracket * -1
+    
     return matching_bracket
 
 def ngrams(words, n, joinstr=' '):
@@ -108,13 +130,17 @@ def offsets(text, sub, start=0, end=None):
     start and end can limit the search to a certain part of text."""
     if end is None:
         end = len(text)
+    
     if start > end:
         raise IndexError("start > end: %i, %i" % (start, end))
+    
     pos = text.find(sub, start, end)
     offsets = []
+    
     while pos > -1 and pos < end:
         offsets.append(pos)
         pos = text.find(sub, pos + 1, end)
+    
     return offsets
 
 def stopWordFilter(text, stopwords, ignore_case=True):

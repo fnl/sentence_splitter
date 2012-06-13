@@ -3,7 +3,7 @@
 # Created by Florian Leitner on 2007-02-26.
 # Copyright (c) 2007 Florian Leitner.
 # All rights reserved.
-# 
+#
 # GNU GPL LICENSE
 #
 # This module is free software; you can redistribute it and/or
@@ -31,7 +31,7 @@ from optparse import OptionParser
 import fnl.nlp.tabletext as text
 import fnl.nlp.sentencesplitter as splitter
 
-__version__ = "3"
+__version__ = "4"
 __author__ = "Florian Leitner"
 
 LOOKAHEAD_LIMIT=500
@@ -54,7 +54,7 @@ def __getopts():
     parser.add_option("-t", "--title", action="store_const",
                     default=0, const=1,
                     help="input has a title column")
-    parser.add_option("-l", "--limit", type="int", metavar="INT", 
+    parser.add_option("-l", "--limit", type="int", metavar="INT",
                     default=LOOKAHEAD_LIMIT,
                     help="max. # chars for bracket closing lookahead")
     parser.add_option("-o", "--out", metavar="STR",
@@ -87,13 +87,13 @@ def __getopts():
 def splitDocs(doc_it, ostream, limit):
     for doc in doc_it:
         more = "" if doc.more is None else "\t%s" % '\t'.join(doc.more)
-        
+
         if doc.title is not None:
             for i, s in enumerate(splitter.split(doc.title, limit=limit)):
                 print >> ostream, "%s\t%i\t%s%s" % (
                     doc.uid,  (i * -1) - 1, s, more
                 )
-        
+
         for i, s in enumerate(splitter.split(doc.text, limit=limit)):
             print >> ostream, "%s\t%i\t%s%s" % (
                 doc.uid,  i, s, more
@@ -105,18 +105,18 @@ def splitText(text, ostream, limit):
 
 if __name__ == '__main__':
     parser, args, opts = __getopts()
-    
+
     # GET THE DESIRED INPUT READER
     Reader = (
         text.TextReader, text.ArticleReader,
         text.MoreTextReader, text.MoreArticleReader
     )[opts.more + opts.title]
-    
+
     # OPEN THE DESIRED OUTPUT STREAM
     ostream = sys.stdout if opts.out is None else open(opts.out, "wT")
-    
+
     file_names = args if len(args) else (None,)
-    
+
     for fname in file_names:
         # SPLIT THE TEXT COMING THROUGH THE INPUT STREAM
         if opts.fulltext or fname is None:
@@ -132,7 +132,7 @@ if __name__ == '__main__':
             # Split the tabular content and output tabular data
             with open(fname, 'rT') as infile:
                 splitDocs(Reader(infile, sep=opts.sep), ostream, opts.limit)
-        
+
     # CLOSE THE OUTPUT STREAM
     if opts.out is not None:
         ostream.close()

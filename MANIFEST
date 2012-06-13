@@ -1,0 +1,7 @@
+setup.py
+split-sentences
+fnl/__init__.py
+fnl/nlp/__init__.py
+fnl/nlp/sentencesplitter.py
+fnl/nlp/tabletext.py
+fnl/nlp/utils.py
